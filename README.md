@@ -1,5 +1,8 @@
 # signingflow
 
+[![CI](https://github.com/Signingflow/signingflow-ruby/actions/workflows/ci.yml/badge.svg)](https://github.com/Signingflow/signingflow-ruby/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Ruby SDK for the Signingflow calls used to send a document, read envelope status, and receive webhooks.
 
 The gem talks to `https://api.signingflow.com`. Keep the API key on your server. Ruby 3.2 or newer is required.

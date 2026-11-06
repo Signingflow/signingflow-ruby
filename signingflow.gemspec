@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "signingflow"
   spec.version = Signingflow::VERSION
   spec.authors = ["Signingflow"]
-  spec.summary = "Official Ruby SDK for the Signingflow operations used by skills and MCP tools."
+  spec.summary = "Official Ruby SDK for the Signingflow API."
   spec.description = "Send a document, read envelope status, and verify webhook signatures with the Signingflow API."
   spec.homepage = "https://github.com/Signingflow/signingflow-ruby"
   spec.license = "MIT"
