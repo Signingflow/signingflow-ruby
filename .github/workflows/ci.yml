@@ -23,6 +23,8 @@ jobs:
       - run: bundle exec rake test
       - name: Publish coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.ruby == '3.2'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           percent=$(ruby -rjson -e 'result=JSON.parse(File.read("coverage/.last_run.json"))["result"]; value=result["line"]||result["covered_percent"]; abort("coverage summary was not found") if value.nil?; print value')
           bash .github/publish-coverage-badge.sh "$percent"
