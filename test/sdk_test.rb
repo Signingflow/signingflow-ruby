@@ -129,6 +129,14 @@ class SdkTest < Minitest::Test
       client.envelopes.create(display_name: "NDA", storage_id: STORAGE_ID, idempotency_key: "same-key")
     end
     assert_raises(Signingflow::InvalidRequestError) { client.envelopes.retrieve(ENVELOPE, read_mask: API_KEY) }
+    encoded_key = "df_sk_a/b c+"
+    encoded = Signingflow::Client.new(encoded_key, workspace_id: "ws", env: "sandbox", max_network_retries: 0)
+    assert_raises(Signingflow::InvalidRequestError) { encoded.envelopes.retrieve(ENVELOPE, read_mask: encoded_key) }
+    assert_raises(Signingflow::InvalidRequestError) { encoded.envelopes.list(directory: "needAction", page_token: encoded_key) }
+    assert_raises(Signingflow::InvalidRequestError) { encoded.envelopes.list(directory: "needAction", read_mask: "prefix #{encoded_key}") }
+    refute Signingflow::Path.query_contains_secret("readMask=documents", encoded_key)
+    assert Signingflow::Path.query_contains_secret("readMask=df_sk_a%2Fb+c%2B", encoded_key)
+    assert Signingflow::Path.query_contains_secret("readMask=%zz", encoded_key)
     assert_raises(Signingflow::InvalidRequestError) { client.envelopes.retrieve("envelopes/not-an-id") }
     assert_raises(Signingflow::InvalidRequestError) { client.envelopes.list(directory: " ") }
     assert_raises(Signingflow::InvalidRequestError) { client.envelopes.list(directory: "needAction", page_size: 0) }

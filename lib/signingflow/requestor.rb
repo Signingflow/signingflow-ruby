@@ -23,7 +23,7 @@ module Signingflow
       rescue InvalidRequestError => e
         raise InvalidRequestError.new(e.message, idempotency_key: key)
       end
-      if uri.query.to_s.include?(@config.api_key)
+      if Path.query_contains_secret(uri.query, @config.api_key)
         raise InvalidRequestError.new("The API key must not be sent in the query string.", idempotency_key: key)
       end
 

@@ -6,11 +6,14 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     strategy:
       matrix:
         ruby: ["3.2", "3.3"]
@@ -21,10 +24,28 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
       - run: bundle exec rake test
-      - name: Publish coverage badge
+      - name: Save coverage percent
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.ruby == '3.2'
-        env:
+        run: ruby -rjson -e 'result=JSON.parse(File.read("coverage/.last_run.json"))["result"]; value=result["line"]||result["covered_percent"]; abort("coverage summary was not found") if value.nil?; File.write(".coverage-percent", value.to_s)'
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.ruby == '3.2'
+        with:
+          name: coverage-percent
+          path: .coverage-percent
+          retention-days: 1
+
+  badge:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-percent
+      - env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          percent=$(ruby -rjson -e 'result=JSON.parse(File.read("coverage/.last_run.json"))["result"]; value=result["line"]||result["covered_percent"]; abort("coverage summary was not found") if value.nil?; print value')
-          bash .github/publish-coverage-badge.sh "$percent"
+        run: bash .github/publish-coverage-badge.sh "$(cat .coverage-percent)"

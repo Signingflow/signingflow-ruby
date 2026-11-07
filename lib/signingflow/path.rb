@@ -44,6 +44,35 @@ module Signingflow
       uri
     end
 
+    # A raw substring misses a key once CGI.escape percent-encodes it.
+    def query_contains_secret(raw_query, secret)
+      query = raw_query.to_s.sub(/\A\?/, "")
+      key = secret.to_s
+      return false if key.empty? || query.empty?
+      escaped = CGI.escape(key)
+      return true if query.include?(key) || query.include?(escaped)
+      return true if broken_percent?(query)
+
+      URI.decode_www_form(query).any? { |_name, value| value.include?(key) }
+    rescue ArgumentError
+      true
+    end
+
+    def broken_percent?(query)
+      index = 0
+      while index < query.length
+        unless query[index] == "%"
+          index += 1
+          next
+        end
+        digits = query[index + 1, 2].to_s
+        return true if digits.length < 2 || digits.match?(/[^0-9a-f]/i)
+
+        index += 3
+      end
+      false
+    end
+
     def allowed_upload_url(raw, hosts)
       begin
         uri = URI.parse(raw)
